@@ -1,0 +1,198 @@
+from proxy_checker import ProxyChecker
+import wmi
+
+
+
+originalPrefs = [READ/paste FIREFOX PREFERENCES FILE AS A LIST INTO HERE, first like looks like '// Mozilla User Preferences\n']
+
+profilePath = 'C:\\Users\\USERNAME\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\j3tq34x4.ProfileProxy\\prefs.js'
+
+def defineLocalServer():
+    #
+    try:
+        cLOCAL = wmi.WMI()
+    except:
+        print("failed to define local server")
+       
+    return cLOCAL
+
+
+def addProxyToOldList(proxy):
+    with open('oldWorkingProxies.txt', "a") as file_object:
+        file_object.write(proxy)
+        
+
+
+def readProxyToOldList():
+    with open('oldWorkingProxies.txt', 'r') as f:
+        content = f.readlines()
+        f.close()
+    return content
+
+def readLiveProxyList():
+    with open('liveProxy.txt', 'r') as f:
+        content = f.readlines()
+        f.close()
+    return content
+    
+
+def removeProxyFromLive(proxy):
+    #read proxy list
+    content = readLiveProxyList()
+    print(len(content))
+    
+    with open('liveProxy.txt','w') as f:
+        for line in content :
+             if proxy not in line:
+                f.write(line)
+    f.close()
+    
+    print(len(readLiveProxyList()))
+
+def getWorkingProxy():
+    proxiesList = readLiveProxyList()
+    checker = ProxyChecker()
+    removedCount = 0
+    
+    oldList = readProxyToOldList()
+
+    for proxy in proxiesList:
+        ip = proxy.split(":")[1]
+        port = proxy.split(":")[0]
+        
+        result = checker.check_proxy(proxy.strip("\n"))
+        if(result is not False and proxy not in oldList):
+            print(proxy)
+            break
+        else:
+            removeProxyFromLive(proxy)
+            removedCount = removedCount+1
+            print("Removed: " + str(removedCount))
+    addProxyToOldList(proxy)
+    return proxy
+
+def launchFirefoxProfile():
+    toLaunch = "C:\\Program Files\\Mozilla Firefox\\firefox.exe"
+    process_id, result = defineLocalServer().Win32_Process.Create( CommandLine=toLaunch)
+    print(toLaunch)
+    print(result)
+#launchFirefoxProfile()
+
+def readFirefoxPrefs():
+    with open(profilePath, 'r') as f:
+        content = f.readlines()
+        f.close()
+    return content
+
+def writeProxiedPayload(proxy):
+    ip = proxy.split(":")[1].strip("\n")
+    port = proxy.split(":")[0].strip("\n")
+    
+    content = readFirefoxPrefs()
+    print(len(content))
+    
+    httpipdone = False
+    httpportdone = False
+    socksipdone = False
+    socksportdone = False
+    
+    
+    with open(profilePath,'w') as f:
+        
+        for line in content :
+            print(line)
+            
+            if '"network.proxy.http"'  in line:
+                toWrite = 'user_pref("network.proxy.http", "'+ ip +'");\n'
+                
+                print("Writing http ip " + toWrite)
+                f.write(toWrite)
+            
+            elif '"network.proxy.http_port"'  in line:
+                toWrite = 'user_pref("network.proxy.http_port", "'+ port +'");\n'
+                
+                print("Writing http port " + toWrite)
+                f.write(toWrite)
+            
+            elif '"network.proxy.socks"'  in line:
+                toWrite ='user_pref("network.proxy.http", "'+ ip +'");\n'
+                
+                print("Writing socks ip " + toWrite)
+                f.write('user_pref("network.proxy.http", "'+ ip +'");\n')
+            
+            elif '"network.proxy.socks_port"'  in line:
+                toWrite = 'user_pref("network.proxy.http_port", "'+ port +'");\n'
+                
+                print("Writing socks proxy " + toWrite)
+                f.write(toWrite)
+            
+#             elif '"network.proxy.socks_version"'  in line:
+#                 toWrite = 'user_pref("network.proxy.socks_version", "'+ str(5) +'");\n'
+                
+#                 print("Writing socks version "+ toWrite)
+#                 f.write(toWrite)
+                
+            elif '"network.proxy.type"'  in line:
+                
+                toWrite = 'user_pref("network.proxy.type", '+ str(1) +');\n'
+                print("Writing type " + toWrite)
+                f.write(toWrite)    
+            
+            else:
+                f.write(line)    
+                
+                
+                
+                
+                
+                
+                
+    f.close()
+    
+    print(len(readFirefoxPrefs()))
+
+def writeProxiedPayloadFromPrefs(proxy):
+    ip = proxy.split(":")[0].strip("\n")
+    port = proxy.split(":")[1].strip("\n")
+    print("ip" + str(ip))
+    print("port" + str(port))
+    
+    content = originalPrefs
+    print(len(content))
+    content[113] = 'user_pref("network.proxy.ftp", \"'+str(ip)+'");\n'
+    content[114] = 'user_pref("network.proxy.ftp_port", '+port+');\n'
+    content[115] = 'user_pref("network.proxy.http", \"'+str(ip)+'");\n'
+    content[116] = 'user_pref("network.proxy.http_port", '+port+');\n'
+    content[117] = 'user_pref("network.proxy.socks", \"'+str(ip)+'");\n'
+    content[118] = 'user_pref("network.proxy.socks_port", '+port+');\n'
+    content[119] = 'user_pref("network.proxy.ssl", \"'+str(ip)+'");\n'
+    content[120] = 'user_pref("network.proxy.ssl_port", '+port+');\n'
+    content[121] = 'user_pref("network.proxy.type", 1);\n'
+    
+    for i in range(0, 9):
+        print(content[113+i])
+    
+    
+    print(len(content))
+    print(type(content))
+    with open(profilePath,'w') as f:
+        
+        for line in content :
+             f.write(str(line))  
+
+
+
+def launchFirefoxProxy(proxy):
+    toLaunch = '"C:\\Program Files\\Mozilla Firefox\\firefox.exe"  -proxy-server '+ proxy
+    process_id, result = defineLocalServer().Win32_Process.Create( CommandLine=toLaunch)
+    print(toLaunch)
+    print(result)
+
+
+
+
+def launchFirefoxFreshProxy():
+    freshWorkingProxy = getWorkingProxy()
+    #writeProxiedPayload(freshWorkingProxy)
+    writeProxiedPayloadFromPrefs(freshWorkingProxy)
+    launchFirefoxProxy(freshWorkingProxy)

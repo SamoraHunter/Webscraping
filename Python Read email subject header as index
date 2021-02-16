@@ -1,0 +1,260 @@
+import os
+import datetime
+import shutil
+from datetime import datetime
+import wmi
+import random as rand
+from random import random
+import time
+from random import seed
+from random import randint
+from datetime import datetime
+from IPython.display import clear_output
+from playsound import playsound
+from random import uniform, random, choice, sample
+import math
+import re
+import numpy.random as np
+import subprocess
+from win10toast import ToastNotifier
+from plyer.utils import platform
+from plyer import notification
+from imapclient import IMAPClient
+import imaplib
+import smtplib
+import time
+import imaplib
+import email
+
+
+def append_multiple_lines(file_name, lines_to_append):
+    # Open the file in append & read mode ('a+')
+    with open(file_name, "a+") as file_object:
+        appendEOL = False
+        # Move read cursor to the start of file.
+        file_object.seek(0)
+        # Check if file is not empty
+        data = file_object.read(100)
+        if len(data) > 0:
+            appendEOL = True
+        # Iterate over each string in the list
+        for line in lines_to_append:
+            # If file is not empty then append '\n' before first line for
+            # other lines always append '\n' before appending line
+            if (line not in readAlreadyPreparedList()):
+                if appendEOL == True:
+                    file_object.write("\n")
+                else:
+                    appendEOL = True
+                # Append element at the end of file
+                file_object.write(line)
+
+
+def hasIndexAlreadyBeenLaunched(index):
+    for integers in readAlreadyLaunchedList():
+        if str(index) in integers:
+            print(str(index) + " " + " has already been launched!")
+            return True
+
+    print(str(index) + " " + " has not already been launched!")
+    return False
+
+
+def hasIndexAlreadyBeenPrepared(index):
+    for integers in readAlreadyPreparedList():
+        if str(index) in integers:
+            print(str(index) + " " + " has already been prepared!")
+            return True
+
+    print(str(index) + " " + " has not already been prepared!")
+    return False
+
+
+def readAlreadyLaunchedList():
+    newlist = []
+
+    with open('%LOG FILE PATH', 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def readAlreadyPreparedList():
+    newlist = []
+
+    with open('%ACC FILE PATH%', 'r') as f:
+        contents = f.readlines()
+
+        return contents
+
+
+def appendMoreAccountsManually(index, start, end):
+
+    return len(preparedAccListM)
+
+
+def getNotification(msg):
+
+    notification.notify(
+        title='Status 0: latest index set: ',
+        message=str(msg),
+        app_name='readNewAccountEmailsAndAppend',
+        app_icon=''%PATHTOICON%'')
+
+
+def readNewAccountEmailsAndAppend(startIndex):
+    for i in range(0, 1000000):
+        a = read_email_from_gmail()
+        print(a)
+        Emailindexn = 2000
+
+        start = '+'
+        end = "@"
+
+        try:
+            latestIndexInEmail = int(a[0].split(start.replace("'", ""))[1].split(end)[0])
+            print(latestIndexInEmail)
+        except:
+            latestIndexInEmail = 0
+            print("Failed to read acc, 0?")
+            getNotification("Failed to read acc, 0?")
+
+        if (latestIndexInEmail != 0 and latestIndexInEmail >= startIndex):
+            status = appendMoreAccountsManually(0, startIndex, latestIndexInEmail)
+            print(status)
+        else:
+            status = 0
+        if (status == 0):
+            getNotification("" + str(startIndex))
+
+        if (latestIndexInEmail != 0):
+            startIndex = latestIndexInEmail - 1
+            print("New latest index set: " + str(startIndex))
+        time.sleep(720)
+
+
+def read_email_from_gmail():
+    try:
+        mail = imaplib.IMAP4_SSL(SMTP_SERVER)
+        mail.login(FROM_EMAIL, FROM_PWD)
+        mail.select('inbox')
+
+        type, data = mail.search(None, 'ALL')
+        mail_ids = data[0]
+
+        fullAccIndexList = []
+
+        id_list = mail_ids.split()
+
+        for i in reversed(id_list):
+            typ, data = mail.fetch(i, '(RFC822)')
+
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_string(response_part[1].decode('utf-8'))
+                    email_subject = msg['subject']
+                    email_from = msg['from']
+             
+                    email_to = msg['to']
+                    fullAccIndexList.append(email_to)
+    
+                    return fullAccIndexList
+
+    except IMAPClient.Error as err:
+        print(str(err))
+
+
+
+
+def read_All_email_from_gmail():
+    try:
+        mail = imaplib.IMAP4_SSL(SMTP_SERVER)
+        mail.login(FROM_EMAIL, FROM_PWD)
+        mail.select('inbox')
+
+        type, data = mail.search(None, 'ALL')
+        mail_ids = data[0]
+
+        fullAccIndexList = []
+
+        id_list = mail_ids.split()
+        print(id_list)
+        print(mail_ids)
+
+        for i in reversed(id_list):
+            typ, data = mail.fetch(i, '(RFC822)')
+            # print(typ, data)
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    msg = email.message_from_string(response_part[1].decode('utf-8'))
+                    # print(msg)
+                    email_subject = msg['subject']
+                    email_from = msg['from']
+                  
+                    email_to = msg['to']
+         
+                    fullAccIndexList.append(email_to)
+
+                    return fullAccIndexList
+
+    except IMAPClient.Error as err:
+        print(str(err))
+
+
+
+def readFullAccIndexList():
+    try:
+        mail = imaplib.IMAP4_SSL(SMTP_SERVER)
+        mail.login(FROM_EMAIL, FROM_PWD)
+        mail.select('inbox')
+
+        type, data = mail.search(None, 'ALL')
+        mail_ids = data[0]
+
+        fullAccIndexList = []
+
+        id_list = mail_ids.split()
+        print(id_list)
+        print(mail_ids)
+
+        for i in reversed(id_list):
+            typ, data = mail.fetch(i, '(RFC822)')
+            # print(typ, data)
+            for response_part in data:
+                if isinstance(response_part, tuple):
+                    try:
+                        msg = email.message_from_string(response_part[1].decode('utf-8'))
+
+            
+                        email_subject = msg['subject']
+                        email_from = msg['from']
+                       
+                        email_to = msg['to']
+                       
+                        fullAccIndexList.append(email_to)
+
+                    except:
+                        print("Failed decode")
+
+    except IMAPClient.Error as err:
+        print(str(err))
+
+    print(len(fullAccIndexList))
+    return fullAccIndexList
+
+
+def readEmailsCheckAndAppend():
+    appendCount = 0
+    fullAccIndexList = readFullAccIndexList()
+    for i in range(0, len(fullAccIndexList)):
+        try:
+            index = fullAccIndexList[i].split("<")[1].split(">")[0]
+            if (FROM_EMAIL.strip(ORG_EMAIL) in index):
+                if (hasIndexAlreadyBeenLaunched(index) == False):
+                    if (hasIndexAlreadyBeenPrepared(index) == False):
+                        appendCount = appendCount + 1
+                        appendMoreAccountsManually(0, int(index.split("+")[1].split("@")[0]),
+                                                   int(index.split("+")[1].split("@")[0]) + 1)
+        except:
+            print("Failed to process: " + fullAccIndexList[i])
+    print("Append calls: " + str(appendCount))                
