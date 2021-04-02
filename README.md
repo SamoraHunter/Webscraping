@@ -12,3 +12,15 @@ Selenium, python, proxies.
   which cannot be called with selenium. 
 
 <>
+
+
+<crawl3 git>
+  
+  Reading from a text file containing large unstructured text which contains website links. Website links are identified, then called, then scraped for contact email addresses.
+  
+  For example a large consumer report on a particular industry detailing a great number of firms with associated websites can be transformed into a list of contact emails. 
+  
+  Known problems: multiple email addresses and anti scraping/obfuscation.
+  
+<>
+
